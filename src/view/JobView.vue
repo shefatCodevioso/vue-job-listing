@@ -1,11 +1,12 @@
 <script setup>
 import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
 import { reactive, onMounted } from 'vue'
-import { useRoute, RouterLink } from 'vue-router'
+import { useRoute, RouterLink, useRouter } from 'vue-router'
 import BackButton from '@/components/BackButton.vue'
 import { useToast } from 'vue-toastification'
 
 const route = useRoute()
+const router = useRouter()
 const toast = useToast()
 const jobId = route.params.id
 
@@ -22,7 +23,9 @@ const deleteJob = async (jobId) => {
     if (!response.ok) {
       throw new Error(`Error: ${response.status}`)
     }
-    route.push('/')
+    const data = await response.json()
+    console.log('Job deleted successfully:', data)
+    router.push('/')
     toast.success('Job deleted successfully')
   } catch (error) {
     toast.error('Job not deleted')
