@@ -1,9 +1,13 @@
 <script setup>
-import { reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import router from '@/router'
+import { onMounted, reactive } from 'vue'
 import { useToast } from 'vue-toastification'
+import { useRoute } from 'vue-router'
 import BackButton from '@/components/BackButton.vue'
-const router = useRouter()
+const route = useRoute()
+
+const jobId = route.params.id
+
 const form = reactive({
   type: 'Full-Time',
   title: '',
@@ -17,9 +21,15 @@ const form = reactive({
     contactPhone: '',
   },
 })
+
+const state = reactive({
+  job: {},
+  isLoading: true,
+})
 const toast = useToast()
+
 const handleSubmit = async () => {
-  const newJob = {
+  const updateJob = {
     type: form.type,
     title: form.title,
     description: form.description,
@@ -33,18 +43,18 @@ const handleSubmit = async () => {
     },
   }
   try {
-    const response = await fetch('https://6936aebbf8dc350aff31c4de.mockapi.io/jobs', {
-      method: 'POST',
+    const response = await fetch(`https://6936aebbf8dc350aff31c4de.mockapi.io/jobs/${jobId}`, {
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(newJob),
+      body: JSON.stringify(updateJob),
     })
     if (!response.ok) {
       throw new Error(`Error: ${response.status}`)
     }
     const data = await response.json()
-    toast.success('Job added successfully')
+    toast.success('Job updated successfully')
     router.push(`/jobs/${data.id}`)
     console.log('Job created successfully:', data)
   } catch (error) {
@@ -52,6 +62,30 @@ const handleSubmit = async () => {
     console.log(error)
   }
 }
+const getJobs = async () => {
+  try {
+    const response = await fetch(`https://6936aebbf8dc350aff31c4de.mockapi.io/jobs/${jobId}`)
+    const data = await response.json()
+    state.job = data
+    // fetch form data
+
+    form.type = state.job.type
+    form.title = state.job.title
+    form.description = state.job.description
+    form.salary = state.job.salary
+    form.location = state.job.location
+    form.company.name = state.job.company.name
+    form.company.description = state.job.company.description
+    form.company.contactEmail = state.job.company.contactEmail
+    form.company.contactPhone = state.job.company.contactPhone
+  } catch (err) {
+    console.log(err)
+  } finally {
+    state.isLoading = false
+  }
+}
+
+onMounted(getJobs)
 </script>
 <template>
   <BackButton />
@@ -59,7 +93,7 @@ const handleSubmit = async () => {
     <div class="container m-auto max-w-2xl py-24">
       <div class="bg-white px-6 py-8 mb-4 shadow-md rounded-md border m-4 md:m-0">
         <form @submit.prevent="handleSubmit">
-          <h2 class="text-3xl text-center font-semibold mb-6">Add Job</h2>
+          <h2 class="text-3xl text-center font-semibold mb-6">Edit Job</h2>
 
           <div class="mb-4">
             <label for="type" class="block text-gray-700 font-bold mb-2">Job Type</label>
@@ -198,7 +232,7 @@ const handleSubmit = async () => {
               class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full w-full focus:outline-none focus:shadow-outline cursor-pointer"
               type="submit"
             >
-              Add Job
+              Update Job
             </button>
           </div>
         </form>

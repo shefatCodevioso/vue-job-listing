@@ -16,17 +16,24 @@ const state = reactive({
 })
 
 const deleteJob = async (jobId) => {
+  const confirmed = window.confirm('Are you sure you want to delete this job?')
+
+  if (!confirmed) return
+
   try {
     const response = await fetch(`https://6936aebbf8dc350aff31c4de.mockapi.io/jobs/${jobId}`, {
       method: 'DELETE',
     })
+
     if (!response.ok) {
       throw new Error(`Error: ${response.status}`)
     }
+
     const data = await response.json()
     console.log('Job deleted successfully:', data)
-    router.push('/')
+
     toast.success('Job deleted successfully')
+    router.push('/')
   } catch (error) {
     toast.error('Job not deleted')
     console.log(error)
